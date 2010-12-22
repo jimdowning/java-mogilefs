@@ -119,8 +119,12 @@ class Backend {
      */
 
     public void setSocketTimeouts(int connectTimeout, int readTimeout) {
-    	socketConnectTimeout = connectTimeout;
-    	socketReadTimeout = readTimeout;
+    	if (connectTimeout >= 0) {
+    		socketConnectTimeout = connectTimeout;
+    	}
+    	if (readTimeout >= 0) {
+    		socketReadTimeout = readTimeout;
+    	}
     }
  
     /**
