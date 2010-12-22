@@ -10,16 +10,26 @@ public class PoolableBackendFactory implements PoolableObjectFactory {
     private Logger log = Logger.getLogger(PoolableBackendFactory.class);
     
     private List trackers;
-    
+
+    private int socketConnectTimeout = -1;
+
+    private int socketReadTimeout = -1;
+
     public PoolableBackendFactory(List trackers) {
         log.debug("new backend factory created");
         
         this.trackers = trackers;
     }
 
+    public PoolableBackendFactory(List trackers, int socketConnectTimeout, int socketReadTimeout) {
+    	this(trackers);
+    	this.socketConnectTimeout = socketConnectTimeout;
+    	this.socketReadTimeout = socketReadTimeout;
+    }
+
     public Object makeObject() throws Exception {
     	try {
-			Backend backend = new Backend(trackers, true);
+			Backend backend = new Backend(trackers, true, socketConnectTimeout, socketReadTimeout);
 	    
 			if (log.isDebugEnabled())
 				log.debug("making object " + backend.toString());

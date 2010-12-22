@@ -56,6 +56,10 @@ class Backend {
 
     private static final int ARGS_PART = 1;
 
+    private int socketConnectTimeout = 3000; // in milliseconds
+
+    private int socketReadTimeout = 30000; // in milliseconds
+
     /**
      * Create the backend. Optionally connect to a tracker right now to ensure
      * one is available right off the bat.
@@ -72,6 +76,12 @@ class Backend {
     public Backend(List trackers, boolean connectNow)
             throws NoTrackersException {
         reload(trackers, connectNow);
+    }
+
+    public Backend(List trackers, boolean connectNow, int socketConnectTimeout, int socketReadTimeout)
+    		throws NoTrackersException {
+    	setSocketTimeouts(socketConnectTimeout, socketReadTimeout);
+    	reload(trackers, connectNow);
     }
 
     /**
@@ -101,6 +111,17 @@ class Backend {
             cachedSocket = getSocket();
     }
 
+    /**
+     * Set timeouts for new sockets. This does not affect existing sockets.
+     * 
+     * @param connectTimeout
+     * @param readTimeout
+     */
+
+    public void setSocketTimeouts(int connectTimeout, int readTimeout) {
+    	socketConnectTimeout = connectTimeout;
+    	socketReadTimeout = readTimeout;
+    }
  
     /**
      * Randomly pick from our list of hosts and try to connect to one of them.
@@ -134,8 +155,8 @@ class Backend {
                 // connect to the server
                 Socket socket = new Socket();
                 // 30 second timeout
-                socket.setSoTimeout(30000);
-                socket.connect(host, 3000);
+                socket.setSoTimeout(socketReadTimeout);
+                socket.connect(host, socketConnectTimeout);
 
                 if (log.isDebugEnabled()) {
                     log.debug("connected to tracker " + socket.getInetAddress().getHostName());

@@ -19,7 +19,9 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 	private int maxTrackerConnections;
 	private int maxIdleConnections;
 	private long maxIdleTimeMillis;
-	
+    private int trackerConnectTimeout = -1;
+    private int trackerReadTimeout = -1;
+
     /**
      * Set things up. Make sure you pass in at least one valid tracker, or
      * you'll get an exception.
@@ -37,9 +39,21 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
     	this.maxIdleTimeMillis = maxIdleTimeMillis;
     }
 
+	/**
+	 * Set the max number of times to try retry storing a file with 'storeFile' or
+	 * deleting a file with 'delete'. If this is -1, then never stop retrying. This value
+	 * defaults to -1.
+	 * 
+	 * @param maxRetries
+	 */
+	public void setTrackerTimeouts(int connectTimeout, int readTimeout) {
+		this.trackerConnectTimeout = connectTimeout;
+		this.trackerReadTimeout = readTimeout;
+	}
+
     protected ObjectPool buildBackendPool() {
 	    // create a new pool of Backend objects
-	    return new GenericObjectPool(new PoolableBackendFactory(trackers),
+	    return new GenericObjectPool(new PoolableBackendFactory(trackers, trackerConnectTimeout, trackerReadTimeout),
 	            maxTrackerConnections,
 	            GenericObjectPool.WHEN_EXHAUSTED_BLOCK,
 	            1000 * 60,  // wait for up to 60 seconds if we run out 
