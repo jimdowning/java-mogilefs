@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLConnection;
 
 public interface MogileFS {
 
@@ -87,6 +88,19 @@ public interface MogileFS {
      */
 
     public abstract InputStream getFileStream(String key)
+            throws NoTrackersException, TrackerCommunicationException,
+            StorageCommunicationException;
+
+    /**
+     * Retrieve the URL connection from some file. Return null if the file doesn't
+     * exist, or throw an exception if we just can't get it from any
+     * of the storage nodes
+     * 
+     * @param key
+     * @return
+     */
+
+    public abstract URLConnection getURLConnection(String key)
             throws NoTrackersException, TrackerCommunicationException,
             StorageCommunicationException;
 

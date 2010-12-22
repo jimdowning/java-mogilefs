@@ -7,6 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 import org.apache.log4j.Logger;
 
@@ -135,6 +138,15 @@ public class LocalFileMogileFSImpl implements MogileFS {
         
         try {
             return new FileInputStream(storedFile);
+        } catch (IOException e) {
+            throw new StorageCommunicationException(e.getMessage());
+        }
+    }
+
+	public URLConnection getURLConnection(String key) throws NoTrackersException, TrackerCommunicationException,
+            StorageCommunicationException {
+		try {
+	        return new URL("file://" + new File(domainDir, key).getAbsolutePath()).openConnection();
         } catch (IOException e) {
             throw new StorageCommunicationException(e.getMessage());
         }

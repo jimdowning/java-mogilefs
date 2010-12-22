@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -372,6 +373,52 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	                log.debug("retrieving file from " + path + " (attempt #" + (paths.hashCode() - tries) + ")");
 	            
 	            return pathURL.openStream();
+	
+	        } catch (IOException e) {
+	            log.warn("problem reading file from " + path);
+	        }
+	    }
+	    
+	    StringBuffer pathString = new StringBuffer();
+	    for (int i = 0; i < paths.length; i++) {
+	        if (i > 0)
+	            pathString.append(", ");
+	        pathString.append(paths[i]);
+	    }
+	    
+	    throw new StorageCommunicationException("unable to retrieve file with key '" + key + "' from any storage node: " + pathString);
+	}
+
+	/**
+	 * Retrieve the data and content-length from some file. Return null if the file doesn't
+	 * exist, or throw an exception if we just can't get it from any
+	 * of the storage nodes
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public URLConnection getURLConnection(String key) throws NoTrackersException, TrackerCommunicationException, StorageCommunicationException {
+	    // pull in the paths for this file
+	    String paths[] = getPaths(key, false);
+	
+	    // does this exist?
+	    if (paths == null)
+	        return null;
+	
+	    // randomly pick one of the files to retrieve and if that fails, try
+	    // to get another one
+	    int startIndex = (int) Math.floor(Math.random() * paths.length);
+	    int tries = paths.length;
+	
+	    while (tries-- > 0) {
+	        String path = paths[startIndex++ % paths.length];
+	
+	        try {
+	            URL pathURL = new URL(path);
+	            if (log.isDebugEnabled())
+	                log.debug("retrieving file from " + path + " (attempt #" + (paths.hashCode() - tries) + ")");
+	            
+	            return pathURL.openConnection();
 	
 	        } catch (IOException e) {
 	            log.warn("problem reading file from " + path);
