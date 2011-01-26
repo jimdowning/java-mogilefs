@@ -32,6 +32,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	
 	private int maxRetries = -1;
 	private int retrySleepTime = 2000;
+	private int httpTimeout = 60000;
 
 	public BaseMogileFSImpl(String domain, String[] trackerStrings) throws BadHostFormatException, NoTrackersException {
         trackers = parseHosts(trackerStrings);
@@ -138,7 +139,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	        try {
 	            return new MogileOutputStream(getBackendPool(), domain, (String) response.get("fid"), (String) response.get("path"),
 	                    (String) response.get("devid"), key,
-	                    byteCount);
+	                    byteCount, httpTimeout);
 	
 	        } catch (MalformedURLException e) {
 	            // hrmm.. this shouldn't happen - we'll blame it on the tracker
@@ -186,6 +187,15 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	    this.retrySleepTime = retrySleepTime;
 	}
 
+	/**
+	 * Set the connect and socket timeout for HTTP connections.
+	 * 
+	 * @param retrySleepTime
+	 */
+	public void setHttpTimeout(int httpTimeout) {
+	    this.httpTimeout = httpTimeout;
+	}
+
 	public void storeFile(String key, String storageClass, File file) throws MogileException {
 	    int attempt = 1;
 	
@@ -207,7 +217,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	                    MogileOutputStream out = new MogileOutputStream(getBackendPool(), domain,
 	                            (String) response.get("fid"),
 	                            (String) response.get("path"), (String) response
-	                                    .get("devid"), key, file.length());
+	                                    .get("devid"), key, file.length(), httpTimeout);
 	        
 	                    FileInputStream in = new FileInputStream(file);
 	                    byte[] buffer = new byte[4096];
@@ -418,7 +428,10 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 	            if (log.isDebugEnabled())
 	                log.debug("retrieving file from " + path + " (attempt #" + (paths.hashCode() - tries) + ")");
 	            
-	            return pathURL.openConnection();
+	            URLConnection urlConnection = pathURL.openConnection();
+	            urlConnection.setConnectTimeout(httpTimeout);
+	            urlConnection.setReadTimeout(httpTimeout);
+				return urlConnection;
 	
 	        } catch (IOException e) {
 	            log.warn("problem reading file from " + path);

@@ -36,12 +36,6 @@ public class MogileOutputStream extends OutputStream {
 
     private static Logger log = Logger.getLogger(MogileOutputStream.class);
     
-    /**
-     * Number of milliseconds we'll let this socket block before we consider it
-     * timed out.
-     */
-    public static final int SOCKET_TIMEOUT = 60000;
-
     private ObjectPool backendPool;
 
     private String domain;
@@ -66,7 +60,7 @@ public class MogileOutputStream extends OutputStream {
     
     public MogileOutputStream(ObjectPool backendPool, String domain, String fid,
             String path, String devid, String key,
-            long totalBytes) throws MalformedURLException,
+            long totalBytes, int timeout) throws MalformedURLException,
             StorageCommunicationException {
         this.backendPool = backendPool;
         this.domain = domain;
@@ -80,10 +74,10 @@ public class MogileOutputStream extends OutputStream {
         try {
             // open a connection to the server
             socket = new Socket();
-            socket.setSoTimeout(SOCKET_TIMEOUT);
+            socket.setSoTimeout(timeout);
             URL parsedPath = new URL(path);
             socket.connect(new InetSocketAddress(parsedPath.getHost(),
-                    parsedPath.getPort()));
+                    parsedPath.getPort()), timeout);
             out = socket.getOutputStream();
             reader = new BufferedReader(new InputStreamReader(socket
                     .getInputStream()));
