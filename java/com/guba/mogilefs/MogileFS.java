@@ -14,13 +14,13 @@ public interface MogileFS {
 	 * @param domain
 	 * @param trackers
 	 * @param connectNow
-	 *			try to connect to a tracker immediately - this lets you know
-	 *			you've got trackers running right off the bat.
+	 *            try to connect to a tracker immediately - this lets you know
+	 *            you've got trackers running right off the bat.
 	 * @throws NoTrackerException
 	 */
 
 	public abstract void reload(String domain, String trackerStrings[]) throws NoTrackersException,
-			BadHostFormatException;
+	BadHostFormatException;
 
 	/**
 	 * Get a ref to an OutputStream so you can store a new file. The original
@@ -44,9 +44,9 @@ public interface MogileFS {
 	 * @param file
 	 * @throws MogileException
 	 */
-	
+
 	public abstract void storeFile(String key, String storageClass, File file)
-			throws MogileException;
+	throws MogileException;
 
 	/**
 	 * Read in an file and store it in the provided file. Return
@@ -60,8 +60,8 @@ public interface MogileFS {
 	 */
 
 	public abstract File getFile(String key, File destination)
-			throws NoTrackersException, TrackerCommunicationException,
-			IOException, StorageCommunicationException;
+	throws NoTrackersException, TrackerCommunicationException,
+	IOException, StorageCommunicationException;
 
 	/**
 	 * Read a file into memory.
@@ -73,10 +73,10 @@ public interface MogileFS {
 	 * @throws IOException
 	 * @throws StorageCommunicationException
 	 */
-	
+
 	public abstract byte[] getFileBytes(String key) throws NoTrackersException,
-			TrackerCommunicationException, IOException,
-			StorageCommunicationException;
+	TrackerCommunicationException, IOException,
+	StorageCommunicationException;
 
 	/**
 	 * Retrieve the data from some file. Return null if the file doesn't
@@ -88,8 +88,8 @@ public interface MogileFS {
 	 */
 
 	public abstract InputStream getFileStream(String key)
-			throws NoTrackersException, TrackerCommunicationException,
-			StorageCommunicationException;
+	throws NoTrackersException, TrackerCommunicationException,
+	StorageCommunicationException;
 
 	/**
 	 * Retrieve the URL connection from some file. Return null if the file doesn't
@@ -112,7 +112,7 @@ public interface MogileFS {
 	 */
 
 	public abstract void delete(String key) throws NoTrackersException,
-			NoTrackersException;
+	NoTrackersException;
 
 	/**
 	 * Tell the server to sleep for a few seconds.
@@ -121,7 +121,7 @@ public interface MogileFS {
 	 */
 
 	public abstract void sleep(int seconds) throws NoTrackersException,
-			TrackerCommunicationException;
+	TrackerCommunicationException;
 
 	/**
 	 * Rename the given key. Note that you won't get an error if the key doesn't
@@ -132,7 +132,7 @@ public interface MogileFS {
 	 */
 
 	public abstract void rename(String fromKey, String toKey)
-			throws NoTrackersException;
+	throws NoTrackersException;
 
 	/**
 	 * Return a list of URL's that specify where this file is stored. Return
@@ -140,12 +140,26 @@ public interface MogileFS {
 	 * 
 	 * @param key
 	 * @return array of Strings that are URLs that specify where this file is
-	 *		 stored, or null if there was an error
+	 *         stored, or null if there was an error
 	 * @throws NoTrackersException
 	 */
 
 	public abstract String[] getPaths(String key, boolean noverify)
-			throws NoTrackersException;
+	throws NoTrackersException;
+
+	public Object[] listKeys(final String key) throws NoTrackersException;
+
+	public Object[] listKeys(final String key, final int limit) throws NoTrackersException;
+
+	/**
+	 * Return the after key and a list of keys matching your key. Return
+	 * null if there was an error from the server.
+	 * 
+	 * @param key
+	 * @return array of after key and array of keys
+	 * @throws NoTrackersException
+	 */
+	public Object[] listKeys(final String key, final String after, final int limit) throws NoTrackersException;
 
 	/**
 	 * Return the name of the domain this client is associated with
@@ -153,5 +167,22 @@ public interface MogileFS {
 	 * @return
 	 */
 	public abstract String getDomain();
-	
+
+	/**
+	 * Set the max number of times to try retry storing a file with 'storeFile' or
+	 * deleting a file with 'delete'. If this is -1, then never stop retrying. This value
+	 * defaults to -1.
+	 * 
+	 * @param maxRetries
+	 */
+	public void setMaxRetries(final int maxRetries);
+
+	/**
+	 * After a failed 'storeFile' request, sleep for this number of milliseconds before
+	 * retrying the store. Defaults to 2 seconds.
+	 * 
+	 * @param retrySleepTime
+	 */
+	public void setRetryTimeout(final int retrySleepTime);
+
 }

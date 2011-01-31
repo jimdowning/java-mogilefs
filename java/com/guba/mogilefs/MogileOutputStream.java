@@ -15,12 +15,14 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.pool.ObjectPool;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is the interface for storing something into the PooledMogileFSImpl store.
@@ -34,8 +36,8 @@ import org.apache.log4j.Logger;
  */
 public class MogileOutputStream extends OutputStream {
 
-	private static Logger log = Logger.getLogger(MogileOutputStream.class);
-	
+	private static final Logger log = LoggerFactory.getLogger(MogileOutputStream.class);
+
 	private ObjectPool backendPool;
 
 	private String domain;
@@ -57,10 +59,10 @@ public class MogileOutputStream extends OutputStream {
 	private BufferedReader reader;
 
 	private int count;
-	
-	public MogileOutputStream(ObjectPool backendPool, String domain, String fid,
-			String path, String devid, String key,
-			long totalBytes, int timeout) throws MalformedURLException,
+
+	public MogileOutputStream(final ObjectPool backendPool, final String domain, final String fid,
+			final String path, final String devid, final String key,
+			final long totalBytes, final int timeout) throws MalformedURLException,
 			StorageCommunicationException {
 		this.backendPool = backendPool;
 		this.domain = domain;
@@ -91,70 +93,77 @@ public class MogileOutputStream extends OutputStream {
 			writer.write("\r\n\r\n");
 			writer.flush();
 		} catch (IOException e) {
+			close1();
 			// problem talking to the storage server
 			throw new StorageCommunicationException(
 					"problem initiating communication with storage server before storing "
-							+ path + ": " + e.getMessage(), e);
+					+ path + ": " + e.getMessage(), e);
 		}
 	}
 
+	/**
+	 * Get the underlying SocketChannel
+	 *
+	 * @return Underlying SocketChannel
+	 */
+	public SocketChannel getChannel() {
+		return socket.getChannel();
+	}
+
+	@Override
 	public void close() throws IOException {
-		if ((out == null) || (socket == null))
+		if ((out == null) || (socket == null)) {
 			throw new IOException("socket has been closed already");
-
-		out.flush();
-
-		String response = reader.readLine();
-		if (response == null)
-			throw new IOException("no response after putting file to "
-					+ path.toString());
-
-		Pattern validResponse = Pattern.compile("^HTTP/\\d+\\.\\d+\\s+(\\d+)");
-		Matcher matcher = validResponse.matcher(response);
-
-		if (!matcher.find()) {
-			throw new IOException("response from put to " + path.toString()
-					+ " not understood: " + response);
 		}
+		try {
+			out.flush();
 
-		int responseCode = Integer.parseInt(matcher.group(1));
-		if ((responseCode < 200) || (responseCode > 299)) {
-			// we got an error - read through to the body
-			StringBuffer fullResponse = new StringBuffer();
-			fullResponse.append("Problem storing to ");
-			fullResponse.append(path.toString());
-			fullResponse.append("\n\n");
-			fullResponse.append(response);
-			fullResponse.append("\n");
-			while ((response = reader.readLine()) != null) {
-				fullResponse.append(response);
-				fullResponse.append("\n");
+			String response = reader.readLine();
+			if (response == null) {
+				throw new IOException("no response after putting file to "
+						+ path.toString());
 			}
 
-			throw new IOException(fullResponse.toString());
+			Pattern validResponse = Pattern.compile("^HTTP/\\d+\\.\\d+\\s+(\\d+)");
+			Matcher matcher = validResponse.matcher(response);
+
+			if (!matcher.find()) {
+				throw new IOException("response from put to " + path.toString()
+						+ " not understood: " + response);
+			}
+
+			int responseCode = Integer.parseInt(matcher.group(1));
+			if ((responseCode < 200) || (responseCode > 299)) {
+				// we got an error - read through to the body
+				StringBuilder fullResponse = new StringBuilder();
+				fullResponse.append("Problem storing to ");
+				fullResponse.append(path.toString());
+				fullResponse.append("\n\n");
+				fullResponse.append(response);
+				fullResponse.append("\n");
+				while ((response = reader.readLine()) != null) {
+					fullResponse.append(response);
+					fullResponse.append("\n");
+				}
+
+				throw new IOException(fullResponse.toString());
+			}
+		} finally {
+			close1();
 		}
-
-		out.close();
-		out = null;
-
-		reader.close();
-		reader = null;
-
-		socket.close();
-		socket = null;
 
 		Backend backend = null;
 		try {
 			backend = borrowBackend();
-			
-			Map closeResponse = backend.doRequest("create_close", new String[] {
+
+			Map<String,String> closeResponse = backend.doRequest("create_close", new String[] {
 					"fid", fid, "devid", devid, "domain", domain, "size",
 					Long.toString(totalBytes), "key", key, "path", path });
 
 			if (closeResponse == null) {
 				throw new IOException(backend.getLastErrStr());
 			}
-			
+
 		} catch (IOException e) {
 			// you know, I could throw this in the conditional above, but this
 			// just seems clearer to me for some reason...
@@ -162,9 +171,9 @@ public class MogileOutputStream extends OutputStream {
 				invalidateBackend(backend);
 				backend = null;
 			}
-			
+
 			throw e;
-			
+
 		} catch (NoTrackersException e) {
 			// I hate to not pass this on, but in the interest of keeping
 			// this easily integrated with various clients, I'll wrap this
@@ -173,7 +182,7 @@ public class MogileOutputStream extends OutputStream {
 				invalidateBackend(backend);
 				backend = null;
 			}
-			
+
 			throw new IOException(e.getMessage());
 
 		} catch (TrackerCommunicationException e) {
@@ -181,25 +190,60 @@ public class MogileOutputStream extends OutputStream {
 				invalidateBackend(backend);
 				backend = null;
 			}
-			
+
 			throw new IOException(e.getMessage());
-		
+
 		} finally {
-			if (backend != null)
+			if (backend != null) {
 				returnBackend(backend);
+			}
 		}
 	}
 
+	/**
+	 * Close all network stuff
+	 */
+	private void close1() {
+		if (out != null) {
+			try {
+				out.close();
+			} catch (IOException ex) {
+				log.error(ex.getMessage(), ex);
+			}
+			out = null;
+		}
+		if (reader != null) {
+			try {
+				reader.close();
+			} catch (IOException ex) {
+				log.error(ex.getMessage(), ex);
+			}
+			reader = null;
+		}
+		if (socket != null) {
+			try {
+				socket.close();
+			} catch (IOException ex) {
+				log.error(ex.getMessage(), ex);
+			}
+			socket = null;
+		}
+	}
+
+	@Override
 	public void flush() throws IOException {
-		if ((out == null) || (socket == null))
+		if ((out == null) || (socket == null)) {
 			throw new IOException("socket has been closed already");
+		}
 
 		out.flush();
 	}
 
-	public void write(int b) throws IOException {
-		if ((out == null) || (socket == null))
+	@Override
+	public void write(final int b) throws IOException {
+		if ((out == null) || (socket == null)) {
 			throw new IOException("socket has been closed already");
+		}
 
 		try {
 			count++;
@@ -210,9 +254,11 @@ public class MogileOutputStream extends OutputStream {
 		}
 	}
 
-	public void write(byte[] b, int off, int len) throws IOException {
-		if ((out == null) || (socket == null))
+	@Override
+	public void write(final byte[] b, final int off, final int len) throws IOException {
+		if ((out == null) || (socket == null)) {
 			throw new IOException("socket has been closed already");
+		}
 
 		try {
 			count += len;
@@ -223,46 +269,38 @@ public class MogileOutputStream extends OutputStream {
 		}
 	}
 
-	public void write(byte[] b) throws IOException {
-		if ((out == null) || (socket == null))
-			throw new IOException("socket has been closed already");
-
-		try {
-			count += b.length;
-			out.write(b);
-		} catch (IOException e) {
-			log.error("wrote at most " + count + "/" + totalBytes + " of stream to storage node " + socket.getInetAddress().getHostName());
-			throw e;
-		}
+	@Override
+	public void write(final byte[] b) throws IOException {
+		write(b, 0, b.length);
 	}
-	
+
 	private Backend borrowBackend() throws NoTrackersException {
 		try {
 			return (Backend) backendPool.borrowObject();
-			
+
 		} catch (Exception e) {
-			log.error(e);
+			log.error(e.getMessage(), e);
 			throw new NoTrackersException();
 		}
 	}
-	
-	private void returnBackend(Backend backend) {
+
+	private void returnBackend(final Backend backend) {
 		try {
 			backendPool.returnObject(backend);
-			
+
 		} catch (Exception e) {
 			// I think we can ignore this.
-			log.warn(e);
+			log.warn(e.getMessage(), e);
 		}
 	}
-	
-	private void invalidateBackend(Backend backend) {
+
+	private void invalidateBackend(final Backend backend) {
 		try {
 			backendPool.invalidateObject(backend);
-			
+
 		} catch (Exception e) {
 			// I think we can ignore this
-			log.warn(e);
+			log.warn(e.getMessage(), e);
 		}
-	}	
+	}
 }

@@ -16,7 +16,7 @@ public class MogileException extends Exception {
 	private static final long serialVersionUID = -6737817547677933860L;
 
 	/**
-	 *  
+	 * 
 	 */
 	public MogileException() {
 		super();
@@ -25,7 +25,7 @@ public class MogileException extends Exception {
 	/**
 	 * @param message
 	 */
-	public MogileException(String message) {
+	public MogileException(final String message) {
 		super(message);
 	}
 
@@ -33,14 +33,14 @@ public class MogileException extends Exception {
 	 * @param message
 	 * @param cause
 	 */
-	public MogileException(String message, Throwable cause) {
+	public MogileException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
 	/**
 	 * @param cause
 	 */
-	public MogileException(Throwable cause) {
+	public MogileException(final Throwable cause) {
 		super(cause);
 	}
 

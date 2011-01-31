@@ -16,6 +16,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 
+import org.junit.Test;
+
 
 /**
  * @author eml
@@ -23,15 +25,11 @@ import java.net.URL;
  */
 public class TestPut {
 
-	public static void main(String args[]) {
-		if (args.length != 2) {
-			System.out.println("usage: TestPut destination filename");
-			System.exit(0);
-		}
-		
-		String destination = args[0];
-		String filename = args[1];
-		
+	@Test
+	public void testPut() {
+		String destination = "http://fab2:7501/";
+		String filename = "java/com/guba/mogilefs/PooledMogileFSImpl.java";
+
 		try {
 			// open a connection to the server
 			Socket socket = new Socket();
@@ -42,7 +40,7 @@ public class TestPut {
 			OutputStream out = socket.getOutputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(socket
 					.getInputStream()));
-			
+
 			// get details of the file we're sending
 			File file = new File(filename);
 			FileInputStream in = new FileInputStream(file);
@@ -55,30 +53,29 @@ public class TestPut {
 			writer.write(Long.toString(file.length()));
 			writer.write("\r\n\r\n");
 			writer.flush();
-			
+
 			// read in the file and write it out to the server
 			byte[] bytes = new byte[1024];
 			int count = 0;
 			while ((count = in.read(bytes)) > 0) {
 				out.write(bytes, 0, count);
 			}
-			
+
 			in.close();
 			//out.close();
-			
+
 			// done!
 			String line;
 			while ((line = reader.readLine()) != null) {
 				System.out.println(line);
 				System.out.println("\n");
 			}
-			
+
 			out.close();
-			
+
 		} catch (IOException e) {
 			// problem talking to the storage server
 			System.out.println("exception: "+ e.getMessage());
 		}
 	}
-		
 }

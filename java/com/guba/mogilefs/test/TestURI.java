@@ -8,13 +8,16 @@ package com.guba.mogilefs.test;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.junit.Test;
+
 /**
  * @author ericlambrecht
- *  
+ * 
  */
-public class URITest {
+public class TestURI {
 
-	public static void main(String[] args) {
+	@Test
+	public void testURI() {
 		try {
 			URI uri = new URI("//somehost.somewhere.com:800");
 
@@ -28,5 +31,4 @@ public class URITest {
 			e.printStackTrace();
 		}
 	}
-
 }

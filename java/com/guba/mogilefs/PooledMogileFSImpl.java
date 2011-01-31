@@ -25,14 +25,27 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 	/**
 	 * Set things up. Make sure you pass in at least one valid tracker, or
 	 * you'll get an exception.
+	 *
+	 * @throws com.guba.mogilefs.NoTrackersException
+	 *             if we can't connect to at least one tracker
+	 */
+	public PooledMogileFSImpl(final String domain, final String trackerStrings[], final int maxTrackerConnections,
+			final int maxIdleConnections, final long maxIdleTimeMillis)
+	throws NoTrackersException, BadHostFormatException {
+		this(domain, trackerStrings, maxTrackerConnections, maxIdleConnections, maxIdleTimeMillis, false);
+	}
+
+	/**
+	 * Set things up. Make sure you pass in at least one valid tracker, or
+	 * you'll get an exception.
 	 * 
 	 * @throws NoTrackersException
-	 *			 if we can't connect to at least one tracker
+	 *             if we can't connect to at least one tracker
 	 */
-	public PooledMogileFSImpl(String domain, String trackerStrings[], int maxTrackerConnections,
-			int maxIdleConnections, long maxIdleTimeMillis)
-			throws NoTrackersException, BadHostFormatException {
-		super(domain, trackerStrings);
+	public PooledMogileFSImpl(final String domain, final String trackerStrings[], final int maxTrackerConnections,
+			final int maxIdleConnections, final long maxIdleTimeMillis, final boolean shouldKeepPathOrder)
+	throws NoTrackersException, BadHostFormatException {
+		super(domain, trackerStrings, shouldKeepPathOrder);
 
 		this.maxIdleConnections = maxIdleConnections;
 		this.maxTrackerConnections = maxTrackerConnections;
@@ -51,14 +64,15 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 		this.trackerReadTimeout = readTimeout;
 	}
 
+	@Override
 	protected ObjectPool buildBackendPool() {
 		// create a new pool of Backend objects
 		return new GenericObjectPool(new PoolableBackendFactory(trackers, trackerConnectTimeout, trackerReadTimeout),
 				maxTrackerConnections,
 				GenericObjectPool.WHEN_EXHAUSTED_BLOCK,
-				1000 * 60,  // wait for up to 60 seconds if we run out 
-				maxIdleConnections, 
-				1,	 // minIdle (** 1? **)
+				1000 * 60,  // wait for up to 60 seconds if we run out
+				maxIdleConnections,
+				1,     // minIdle (** 1? **)
 				true, // test on borrow
 				true, // test on return
 				20 * 1000, // time between eviction runs millis
@@ -67,5 +81,5 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 				true, // test while idle
 				5 * 1000); //softMinEvictableIdleTimeMillis
 	}
-	
+
 }
