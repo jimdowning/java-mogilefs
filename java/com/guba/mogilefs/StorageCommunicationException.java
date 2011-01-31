@@ -11,14 +11,14 @@ package com.guba.mogilefs;
  */
 public class StorageCommunicationException extends MogileException {
 
-    private static final long serialVersionUID = 6557930929763915323L;
+	private static final long serialVersionUID = 6557930929763915323L;
 
-    public StorageCommunicationException(String message) {
-        super(message);
-    }
+	public StorageCommunicationException(String message) {
+		super(message);
+	}
 
-    public StorageCommunicationException(String message, Throwable t) {
-        super(message, t);
-    }
+	public StorageCommunicationException(String message, Throwable t) {
+		super(message, t);
+	}
 
 }

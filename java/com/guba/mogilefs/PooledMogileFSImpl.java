@@ -19,25 +19,25 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 	private int maxTrackerConnections;
 	private int maxIdleConnections;
 	private long maxIdleTimeMillis;
-    private int trackerConnectTimeout = -1;
-    private int trackerReadTimeout = -1;
+	private int trackerConnectTimeout = -1;
+	private int trackerReadTimeout = -1;
 
-    /**
-     * Set things up. Make sure you pass in at least one valid tracker, or
-     * you'll get an exception.
-     * 
-     * @throws NoTrackersException
-     *             if we can't connect to at least one tracker
-     */
-    public PooledMogileFSImpl(String domain, String trackerStrings[], int maxTrackerConnections,
-            int maxIdleConnections, long maxIdleTimeMillis)
-            throws NoTrackersException, BadHostFormatException {
-    	super(domain, trackerStrings);
+	/**
+	 * Set things up. Make sure you pass in at least one valid tracker, or
+	 * you'll get an exception.
+	 * 
+	 * @throws NoTrackersException
+	 *			 if we can't connect to at least one tracker
+	 */
+	public PooledMogileFSImpl(String domain, String trackerStrings[], int maxTrackerConnections,
+			int maxIdleConnections, long maxIdleTimeMillis)
+			throws NoTrackersException, BadHostFormatException {
+		super(domain, trackerStrings);
 
-    	this.maxIdleConnections = maxIdleConnections;
-    	this.maxTrackerConnections = maxTrackerConnections;
-    	this.maxIdleTimeMillis = maxIdleTimeMillis;
-    }
+		this.maxIdleConnections = maxIdleConnections;
+		this.maxTrackerConnections = maxTrackerConnections;
+		this.maxIdleTimeMillis = maxIdleTimeMillis;
+	}
 
 	/**
 	 * Set the max number of times to try retry storing a file with 'storeFile' or
@@ -51,21 +51,21 @@ public class PooledMogileFSImpl extends BaseMogileFSImpl {
 		this.trackerReadTimeout = readTimeout;
 	}
 
-    protected ObjectPool buildBackendPool() {
-	    // create a new pool of Backend objects
-	    return new GenericObjectPool(new PoolableBackendFactory(trackers, trackerConnectTimeout, trackerReadTimeout),
-	            maxTrackerConnections,
-	            GenericObjectPool.WHEN_EXHAUSTED_BLOCK,
-	            1000 * 60,  // wait for up to 60 seconds if we run out 
-	            maxIdleConnections, 
-	            1,     // minIdle (** 1? **)
-	            true, // test on borrow
-	            true, // test on return
-	            20 * 1000, // time between eviction runs millis
-	            -1,  // number of tests per eviction run
-	            maxIdleTimeMillis, // number of seconds before an object is considered idle
-	            true, // test while idle
-	            5 * 1000); //softMinEvictableIdleTimeMillis
-    }
-    
+	protected ObjectPool buildBackendPool() {
+		// create a new pool of Backend objects
+		return new GenericObjectPool(new PoolableBackendFactory(trackers, trackerConnectTimeout, trackerReadTimeout),
+				maxTrackerConnections,
+				GenericObjectPool.WHEN_EXHAUSTED_BLOCK,
+				1000 * 60,  // wait for up to 60 seconds if we run out 
+				maxIdleConnections, 
+				1,	 // minIdle (** 1? **)
+				true, // test on borrow
+				true, // test on return
+				20 * 1000, // time between eviction runs millis
+				-1,  // number of tests per eviction run
+				maxIdleTimeMillis, // number of seconds before an object is considered idle
+				true, // test while idle
+				5 * 1000); //softMinEvictableIdleTimeMillis
+	}
+	
 }

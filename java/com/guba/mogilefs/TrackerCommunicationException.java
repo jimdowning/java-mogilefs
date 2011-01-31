@@ -16,13 +16,13 @@ package com.guba.mogilefs;
  */
 public class TrackerCommunicationException extends MogileException {
 
-    private static final long serialVersionUID = 8151266363306339465L;
+	private static final long serialVersionUID = 8151266363306339465L;
 
-    public TrackerCommunicationException(String message) {
-        super(message);
-    }
+	public TrackerCommunicationException(String message) {
+		super(message);
+	}
 
-    public TrackerCommunicationException(String message, Throwable t) {
-        super(message, t);
-    }
+	public TrackerCommunicationException(String message, Throwable t) {
+		super(message, t);
+	}
 }
