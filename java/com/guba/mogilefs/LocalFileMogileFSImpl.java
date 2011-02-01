@@ -55,6 +55,18 @@ public class LocalFileMogileFSImpl implements MogileFS {
 			TrackerCommunicationException, StorageCommunicationException {
 
 		File file = new File(domainDir, key);
+		file.getParentFile().mkdirs();
+		if (!file.exists()) {
+			try {
+				if (!file.createNewFile()) {
+					throw new RuntimeException("Problem storing: can't create "
+							+ file);
+				}
+			} catch (IOException e) {
+				throw new StorageCommunicationException(
+						"Problem getting access to " + file);
+			}
+		}
 		try {
 			return new FileOutputStream(file);
 
@@ -66,9 +78,18 @@ public class LocalFileMogileFSImpl implements MogileFS {
 
 	public void storeFile(final String key, final String storageClass, final File file)
 	throws MogileException {
+		if (!file.exists()) {
+			throw new IllegalArgumentException("File " + file
+					+ " does not exist");
+		}
 		File storedFile = new File(domainDir, key);
-
+		storedFile.getParentFile().mkdirs();
 		try {
+			if (!storedFile.exists()) {
+				if (!storedFile.createNewFile()) {
+					throw new MogileException("Can't create " + storedFile);
+				}
+			}
 			FileOutputStream out = new FileOutputStream(storedFile);
 			FileInputStream in = new FileInputStream(file);
 
@@ -82,8 +103,7 @@ public class LocalFileMogileFSImpl implements MogileFS {
 			in.close();
 
 		} catch (IOException e) {
-
-			throw new StorageCommunicationException(e.getMessage());
+			throw new StorageCommunicationException(e.getMessage(), e);
 		}
 
 	}
