@@ -21,4 +21,8 @@ public class StorageCommunicationException extends MogileException {
 		super(message, t);
 	}
 
+	public StorageCommunicationException(Throwable cause) {
+		super(cause);
+	}
+
 }

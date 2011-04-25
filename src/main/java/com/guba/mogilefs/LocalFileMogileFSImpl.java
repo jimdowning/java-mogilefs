@@ -153,13 +153,12 @@ public class LocalFileMogileFSImpl implements MogileFS {
 
 	public InputStream getFileStream(final String key) throws NoTrackersException,
 	TrackerCommunicationException, StorageCommunicationException {
-		// TODO Auto-generated method stub
 		File storedFile = new File(domainDir, key);
 
 		try {
 			return new FileInputStream(storedFile);
 		} catch (IOException e) {
-			throw new StorageCommunicationException(e.getMessage());
+			throw new StorageCommunicationException(e);
 		}
 	}
 
