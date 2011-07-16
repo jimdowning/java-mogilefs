@@ -154,7 +154,9 @@ public class LocalFileMogileFSImpl implements MogileFS {
 	public InputStream getFileStream(final String key) throws NoTrackersException,
 	TrackerCommunicationException, StorageCommunicationException {
 		File storedFile = new File(domainDir, key);
-
+		if (!storedFile.exists()) {
+			return null;
+		}
 		try {
 			return new FileInputStream(storedFile);
 		} catch (IOException e) {

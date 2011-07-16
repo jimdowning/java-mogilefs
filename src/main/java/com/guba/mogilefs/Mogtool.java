@@ -61,7 +61,7 @@ public class Mogtool {
 			try {
 				line = parser.parse(opts, argv);
 			} catch (ParseException e) {
-
+				e.printStackTrace();
 				fail = true;
 			}
 
@@ -82,7 +82,7 @@ public class Mogtool {
 			setStorageClass(line.getOptionValue("c"));
 
 
-			if (domain == null || trackers == null) {
+			if (trackers == null) {
 				showUsage();
 				System.err.println("You need to specify both domain and trackers.");
 				System.exit(1);
@@ -176,7 +176,7 @@ public class Mogtool {
 		protected MogileFS createMogileFS() throws NoTrackersException, BadHostFormatException {
 			final PooledMogileFSImpl mogFs = new PooledMogileFSImpl(domain, trackers, 5, 2, 30000);
 			// The Perl mogTool doesn't retry if it breaks.
-			mogFs.setMaxRetries(0);
+			mogFs.setMaxRetries(1);
 			return mogFs;
 		}
 
