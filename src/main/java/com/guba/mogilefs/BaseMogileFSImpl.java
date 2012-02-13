@@ -239,10 +239,9 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 		int attempt = 1;
 
 		Backend backend = null;
-		System.err.println("About to make " + maxRetries
-				+ " attempts to store...");
+		log.debug("About to make " + maxRetries + " attempts to store...");
 		while ((maxRetries == -1) || (attempt++ <= maxRetries)) {
-			System.err.println("Attempt: " + attempt);
+			log.debug("Attempt: " + attempt);
 			try {
 				backend = borrowBackend();
 				Validate.notNull(key, "Key is null");
@@ -304,7 +303,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 					returnBackend(backend);
 				}
 			}
-			System.err.println("Didn't work on the " + attempt + " time");
+			log.debug("Didn't work on the " + attempt + " time");
 			// wait a little while before continuing
 			retrySleep();
 
