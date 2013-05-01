@@ -280,7 +280,7 @@ public class MogileOutputStream extends OutputStream {
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			throw new NoTrackersException();
+			throw new NoTrackersException(e.getMessage(), e);
 		}
 	}
 

@@ -183,7 +183,7 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 						+ response.get("path"));
 				throw new TrackerCommunicationException(
 						"error trying to store file with malformed url: "
-								+ response.get("path"));
+								+ response.get("path"), e);
 
 			}
 
@@ -560,7 +560,8 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 			retrySleep();
 		}
 
-		throw new NoTrackersException();
+		throw new NoTrackersException("Couldn't delete from any backend in "
+				+ attempt + " attempts");
 	}
 
 	/**
@@ -638,7 +639,8 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 			retrySleep();
 		}
 
-		throw new NoTrackersException();
+		throw new NoTrackersException("Couldn't rename in " + attempt
+				+ " attempts");
 	}
 
 	/**
@@ -698,7 +700,8 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 			retrySleep();
 		}
 
-		throw new NoTrackersException();
+		throw new NoTrackersException("Can't find path in " + attempt
+				+ " attempts");
 	}
 
 	/**
@@ -760,7 +763,9 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 			}
 		}
 
-		throw new NoTrackersException();
+		throw new NoTrackersException(
+				"Couldn't find any trackers to give locations for " + key
+						+ " in " + attempt + " attempts");
 	}
 
 	public Object[] listKeys(final String key) throws NoTrackersException {
@@ -797,7 +802,8 @@ public abstract class BaseMogileFSImpl implements MogileFS {
 
 		} catch (Exception e) {
 			log.error("unable to get backend", e);
-			throw new NoTrackersException();
+			throw new NoTrackersException("Unable to get backend: "
+					+ e.getMessage(), e);
 		}
 	}
 

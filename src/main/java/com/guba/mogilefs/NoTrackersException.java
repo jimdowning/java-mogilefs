@@ -13,6 +13,22 @@ package com.guba.mogilefs;
  */
 public class NoTrackersException extends MogileException {
 
+	public NoTrackersException(String message, Throwable reason) {
+		super(message, reason);
+	}
+
+	public NoTrackersException() {
+		super();
+	}
+
+	public NoTrackersException(String message) {
+		super(message);
+	}
+
+	public NoTrackersException(Throwable cause) {
+		super(cause);
+	}
+
 	private static final long serialVersionUID = 1L;
 
 }

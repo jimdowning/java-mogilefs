@@ -64,14 +64,16 @@ public class LocalFileMogileFSImpl implements MogileFS {
 				}
 			} catch (IOException e) {
 				throw new StorageCommunicationException(
-						"Problem getting access to " + file);
+						"Problem getting access to " + file + " ("
+								+ e.getMessage() + ")", e);
 			}
 		}
 		try {
 			return new FileOutputStream(file);
 
 		} catch (IOException e) {
-			throw new StorageCommunicationException("couldn't open file " + file.getAbsolutePath());
+			throw new StorageCommunicationException("couldn't open file "
+					+ file.getAbsolutePath() + " (" + e.getMessage() + ")", e);
 		}
 	}
 
@@ -130,7 +132,7 @@ public class LocalFileMogileFSImpl implements MogileFS {
 
 		} catch (IOException e) {
 
-			throw new StorageCommunicationException(e.getMessage());
+			throw new StorageCommunicationException(e.getMessage(), e);
 		}
 	}
 
@@ -160,7 +162,7 @@ public class LocalFileMogileFSImpl implements MogileFS {
 		try {
 			return new FileInputStream(storedFile);
 		} catch (IOException e) {
-			throw new StorageCommunicationException(e);
+			throw new StorageCommunicationException(e.getMessage(), e);
 		}
 	}
 
@@ -169,7 +171,7 @@ public class LocalFileMogileFSImpl implements MogileFS {
 		try {
 			return new URL("file://" + new File(domainDir, key).getAbsolutePath()).openConnection();
 		} catch (IOException e) {
-			throw new StorageCommunicationException(e.getMessage());
+			throw new StorageCommunicationException(e.getMessage(), e);
 		}
 	}
 

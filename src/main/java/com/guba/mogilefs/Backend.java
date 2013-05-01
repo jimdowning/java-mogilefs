@@ -100,7 +100,7 @@ class Backend {
 		this.hosts = trackers;
 
 		if (hosts.size() == 0) {
-			throw new NoTrackersException();
+			throw new NoTrackersException("No trackers configured");
 		}
 
 		this.deadHosts = new HashMap<InetSocketAddress, Long>();
@@ -193,7 +193,7 @@ class Backend {
 		}
 
 		// didn't find anything! throw an exception!
-		throw new NoTrackersException();
+		throw new NoTrackersException("Cannot connect to any of " + hosts);
 	}
 
 	/**

@@ -25,4 +25,12 @@ public class TrackerCommunicationException extends MogileException {
 	public TrackerCommunicationException(final String message, final Throwable t) {
 		super(message, t);
 	}
+
+	public TrackerCommunicationException() {
+		super();
+	}
+
+	public TrackerCommunicationException(Throwable cause) {
+		super(cause);
+	}
 }

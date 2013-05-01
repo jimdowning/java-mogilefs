@@ -17,4 +17,16 @@ public class BadHostFormatException extends MogileException {
 		super(host);
 	}
 
+	public BadHostFormatException() {
+		super();
+	}
+
+	public BadHostFormatException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public BadHostFormatException(Throwable cause) {
+		super(cause);
+	}
+
 }
